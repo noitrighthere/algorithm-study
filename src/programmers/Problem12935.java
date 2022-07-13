@@ -43,7 +43,6 @@ class Solution12935 {
            }
            answer[cnt++] = arr[i];
        }
-       Ara
 
        return answer;
     }
