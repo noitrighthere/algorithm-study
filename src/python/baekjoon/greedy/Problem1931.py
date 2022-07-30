@@ -15,8 +15,6 @@ cnt = 0
 arr.sort(key=lambda x:x[0])
 arr.sort(key=lambda x:x[1])
 
-print(arr)
-
 for i, j in arr:
     if i >= last:
         cnt += 1
