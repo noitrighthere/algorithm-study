@@ -13,6 +13,8 @@ dy = [-1, 0, 1, 0]
 # 그래프
 graph = [list(map(int, input().split())) for _ in range(n)]
 
+result = 0
+
 # 나무의 성장에 관한 함수
 def grow(x, y):
     # 주변에 있는 나무의 수
@@ -33,6 +35,7 @@ def grow(x, y):
 def breeding(x, y, tree_value):
     # 번식할 수 있는 칸의 수
     count = 0
+    breeding_value = 0
 
     # 번식할 수 있는 칸의 수를 구함
     for d in range(4):
@@ -43,8 +46,9 @@ def breeding(x, y, tree_value):
             if graph[nx][ny] == 0:
                 count += 1
 
-    # 번식이 되는 나무의 수
-    breeding_value = tree_value // count
+    if count > 0:
+        # 번식이 되는 나무의 수
+        breeding_value = tree_value // count
 
     # 번식
     for d in range(4):
@@ -57,6 +61,7 @@ def breeding(x, y, tree_value):
 # 가장 많이 박멸될 만한 곳을 찾음
 def count_kill_simulation(x, y, value):
 
+    global k_x, k_y, max_kill
     kill_value = value
 
     for d in range(4):
@@ -73,6 +78,37 @@ def count_kill_simulation(x, y, value):
                     break
 
     kill_count_graph[x][y] = kill_value
+
+    if max_kill < kill_value:
+        k_x, k_y = x, y
+        max_kill = kill_value
+
+def cool_down():
+    for i in range(n):
+        for j in range(n):
+            # 제초제가 뿌려진 곳은 -2 이하임
+            if graph[i][j] < -1:
+                graph[i][j] += 1
+            elif graph[i][j] == -2:
+                graph[i][j] = 0
+
+def tree_kill(x, y):
+    # 현재 위치 = 제초제가 처음 살포되는 위치
+    graph[x][y] = (-1 * c) - 1
+
+    for d in range(4):
+        # k 칸만큼 살포
+        for i in range(1, k+1):
+            nx, ny = x + _dx[d]*i , y + _dy[d]*i
+
+            if 0 <= nx < n and 0 <= ny < n:
+                # 빈칸일 때는 제초제를 뿌리고 더이상 뿌리지 않음
+                if graph[nx][ny] == 0:
+                    graph[nx][ny] = (-1 * c) - 1
+                    break
+                # 나무가 있는 경우
+                elif graph[nx][ny] > 0:
+                    graph[nx][ny] = (-1 * c) - 1
 
 # m년 동안 진행
 for _ in range(m):
@@ -104,13 +140,22 @@ for _ in range(m):
             graph[i][j] += temp[i][j]
 
     # 3. 제초제 살포
-    # 나무가 가장 많이 박멸되는 곳을 찾음
     # 임시 그래프
     kill_count_graph = [[0] * n for _ in range(n)]
+    k_x, k_y = 0, 0
+    max_kill = 0
 
     for i in range(n):
         for j in range(n):
             if graph[i][j] > 0:
                 count_kill_simulation(i, j, graph[i][j])
 
-    print(kill_count_graph)
+    # 4. 제초제 경감기
+    cool_down()
+
+    # 5. 제초제 살포
+    tree_kill(k_x, k_y)
+
+    result += max_kill
+
+print(result)
